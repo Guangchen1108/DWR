@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">  
+<html>  
+    <head>  
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>社内通信beta1</title>  
+        <script type='text/javascript' src='dwr/engine.js'></script>  
+        <script type='text/javascript' src='dwr/util.js'></script>  
+        <script type='text/javascript' src='dwr/interface/aaa.js'></script>
+        <script type='text/javascript' src="script/jquery-3.1.0.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="style/style.css" />
+        <style type="text/css">
+        	p {
+        		line-height:20px;
+        		margin-top:0px;
+        		background-color:#ccc;
+        	}
+        </style>
+        <script type="text/javascript">
+        	$(document).ready(function(){
+        		$("#username").blur(function(){
+        			if ($("#username").val() != "") {
+	        			if(typeof($(this).attr("readonly"))=="undefined") {
+	        				$(this).attr("readonly","true");
+	        				aaa.send("dwrsend", "broadcast:" + $("#username").val() + "已上线");
+	        			}
+        			}	
+        		});
+        		$("select[name=scpttype]").hide();
+        		
+        		$("select[name=msgtype]").change(function(){
+        			if ($("select[name=msgtype]").val() == '002') {
+        				$("select[name=scpttype]").show();
+        			} else {
+        				$("select[name=scpttype]").hide();
+        			}
+        		});
+        		
+        		$(window).bind('beforeunload',function(){
+        			aaa.send("dwrsend", "broadcast:" + $("#username").val() + "已下线");
+        		});
+        	});
+        	function reachButtom() {
+    			$('#contents').scrollTop( $('#contents')[0].scrollHeight);
+    		}
+        	
+        	
+        </script>
+    </head>  
+    <body>  
+        <center><strong>请设置您的昵称：</strong> <input type="text" id="username" size="10"/>
+        <strong>URL:</strong><input type="text" name="url" readonly="readonly"/></center>
+        <br/><br/><br/>
+        <div style="width:60%;height:50%;border:solid 1px;overflow-y:scroll;margin-left:20%;padding:20px;" id="contents">
+        </div>
+        <br/><br/>
+        <input type="text" id="mytext" style="width:45%;height:30px;margin-left:24%"/>
+        <select name="msgtype">
+        	<option value="001">文本</option>
+        	<option value="002">脚本</option>
+        </select>
+        <select name="scpttype">
+        	<option value="001">Alert</option>
+        </select>
+        <input type="button" onclick="go()" value="发送" />
+    </body>  
+</html>  
+<script>  
+    window.onload = function() {  
+        dwr.engine.setActiveReverseAjax(true);  
+        aaa.getwebindex("dwrsend");
+        }
+    
+    function go(){  
+        var text=document.getElementById("mytext").value;
+        var msgtype = $("select[name=msgtype]").val();
+        if (msgtype=='002') {
+        	if ($("select[name=scpttype]").val() == '001') {
+        		text = '[脚本]<script> ' + "alert('" + text + "');" + '</' + 'script>';
+        	} else {
+        		text = '[脚本]<script>' + text + '</' + 'script>';
+        	}
+        }
+        if ($("#username").val() != "") {
+        	aaa.send("dwrsend", $("#username").val() + ":" + text);  
+        } else {
+        	aaa.send("dwrsend", "匿名:" + text); 
+        }
+        $("#mytext").val("");
+   	}
+    function rec(bbb){  
+        var name = bbb.split(":")[0];
+        if (name == $("#username").val()) {
+        	
+        	$("#contents").append("<div class='full'><div class='speech right'>" + bbb.split(":")[1] + "</div></div>");
+        } else if (name == "broadcast"){
+        	$("#contents").append("<div class='full'><span class='broadcast'>" + bbb + "</span></div>");
+        } else {
+        	$("#contents").append("<div class='full'><div style='float:left;height:36px;padding-top:17px'>" + name + "</div><div class='speech left'>" + bbb.split(":")[1] + '</div></div>');
+        }
+        reachButtom();
+   	}
+    
+    function setUrl(url) {
+    	$("input[name=url]").val(url);
+    }
+</script>
